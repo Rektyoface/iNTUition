@@ -1,0 +1,6 @@
+transformers==4.37.2
+datasets==2.16.1
+tokenizers>=0.14.1
+torch==2.1.2
+accelerate==0.25.0
+scikit-learn

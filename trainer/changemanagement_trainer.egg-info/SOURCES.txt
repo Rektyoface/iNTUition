@@ -1,0 +1,9 @@
+pyproject.toml
+setup.py
+changemanagement_trainer.egg-info/PKG-INFO
+changemanagement_trainer.egg-info/SOURCES.txt
+changemanagement_trainer.egg-info/dependency_links.txt
+changemanagement_trainer.egg-info/requires.txt
+changemanagement_trainer.egg-info/top_level.txt
+trainer/__init__.py
+trainer/task.py
