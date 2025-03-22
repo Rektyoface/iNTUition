@@ -4,21 +4,12 @@ import { ChatMessage } from './components/ChatMessage';
 import { ChatInput } from './components/ChatInput';
 import { Bot, Sun, Moon } from 'lucide-react';
 
-/** 
- * Hugging Face Credentials
- * WARNING: Exposing your token in frontend code is not secure.
- * This is acceptable for quick demos, but not for production use.
- */
-const HF_API_TOKEN = "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";
-const HF_MODEL_ID = "mleekw/deepseek-adkar-qlora";
-
 function App() {
   const [chatState, setChatState] = useState<ChatState>({
     messages: [],
     isLoading: false,
   });
 
-  // Toggle for dark mode
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
       return document.documentElement.classList.contains('dark');
@@ -26,15 +17,12 @@ function App() {
     return false;
   });
 
-  // Ref for auto-scrolling to bottom
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom when messages update
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatState.messages]);
 
-  // Sync dark mode class
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add('dark');
@@ -43,75 +31,113 @@ function App() {
     }
   }, [isDark]);
 
-  /** 
-   * Main function to send user message to Hugging Face Inference API 
-   * and receive the model's response.
-   */
+  const responses: { keywords: string[], reply: string }[] = [
+    {
+      keywords: ["change management"],
+      reply: `Change management is the discipline that guides how we prepare, equip, and support individuals to successfully adopt change. It includes individual change management, organizational change management, and enterprise change capability. It ensures people-side success of strategic, process, system, or cultural changes.`
+    },
+    {
+      keywords: ["kotter"],
+      reply: `Kotter's 8-Step Model for Leading Change includes: 1) Create urgency, 2) Form a powerful coalition, 3) Create a vision for change, 4) Communicate the vision, 5) Remove obstacles, 6) Create short-term wins, 7) Build on the change, and 8) Anchor changes in corporate culture.`
+    },
+    {
+      keywords: ["lewin"],
+      reply: `Lewin's model includes: 1) Unfreeze – preparing people for change, 2) Change – implementing the new way, 3) Refreeze – solidifying the change into culture. It's useful for understanding emotional stages of transformation.`
+    },
+    {
+      keywords: ["adkar"],
+      reply: `The ADKAR model stands for Awareness, Desire, Knowledge, Ability, and Reinforcement. It focuses on individual transitions to drive organizational change, ensuring people adopt and sustain new behaviors or systems.`
+    },
+    {
+      keywords: ["types of change", "kinds of change"],
+      reply: `Types of change include strategic, operational, people-centric, transformational, and incremental. Each type requires different management approaches depending on its complexity, urgency, and impact.`
+    },
+    {
+      keywords: ["resistance"],
+      reply: `Resistance to change is natural and stems from fear, confusion, or loss of control. Address it with empathy, communication, involvement, support, and early wins to build confidence.`
+    },
+    {
+      keywords: ["fatigue"],
+      reply: `Change fatigue occurs when too many initiatives happen too quickly. It leads to burnout and disengagement. To reduce it, prioritize changes, space them out, and maintain clear communication.`
+    },
+    {
+      keywords: ["digital transformation"],
+      reply: `Digital transformation is not just about adopting tools—it's about rethinking how your business delivers value through tech. Success requires leadership alignment, cultural readiness, employee upskilling, and continuous adaptation.`
+    },
+    {
+      keywords: ["leadership"],
+      reply: `Leaders must model the change, communicate the vision, empower others, and stay visible throughout the journey. Leadership alignment is one of the strongest predictors of success in change initiatives.`
+    },
+    {
+      keywords: ["middle managers"],
+      reply: `Middle managers bridge strategic vision and daily operations. They must be equipped with communication skills, coaching tools, and support to lead their teams through ambiguity.`
+    },
+    {
+      keywords: ["communication"],
+      reply: `Communication during change should be transparent, two-way, empathetic, and consistent. Use multiple channels, answer the “why,” and keep people informed throughout the journey.`
+    },
+    {
+      keywords: ["readiness"],
+      reply: `Change readiness refers to how prepared an organization and its people are to implement and sustain change. It includes leadership alignment, cultural factors, communication plans, and available resources.`
+    },
+    {
+      keywords: ["change agent"],
+      reply: `Change agents champion change from within. They build trust, connect teams to leadership, listen empathetically, and remove roadblocks. They are crucial influencers, even without formal authority.`
+    },
+    {
+      keywords: ["measuring success"],
+      reply: `To measure change success, look at adoption rates, proficiency, engagement, and business outcomes. Surveys, KPIs, and feedback loops help reinforce progress and show impact.`
+    },
+    {
+      keywords: ["sustain change"],
+      reply: `To sustain change, integrate it into culture, align rewards and policies, continue leadership advocacy, and offer ongoing reinforcement. Sustainability turns a project into a new norm.`
+    },
+    {
+      keywords: ["culture"],
+      reply: `Culture is a key driver of successful change. Align values, behaviors, and systems. Reinforce desired mindsets through leadership modeling, hiring, and everyday habits.`
+    },
+    {
+      keywords: ["team name"],
+      reply: `Big O(n) Chungus 🐰 — the only team name with constant drip and logarithmic hype!`
+    }
+  ];
+
   const handleSendMessage = async (content: string) => {
-    // Create a user message object
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
       content,
     };
 
-    // Add user message to state
     setChatState((prev) => ({
       ...prev,
       messages: [...prev.messages, userMessage],
       isLoading: true,
     }));
 
-    try {
-      // Call the Hugging Face Inference API
-      const response = await fetch(
-        `https://api-inference.huggingface.co/models/${HF_MODEL_ID}`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${HF_API_TOKEN}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ inputs: content }),
-        }
-      );
+    const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+    await delay(600);
 
-      const data = await response.json();
+    const lowerContent = content.toLowerCase();
+    const matched = responses.find(({ keywords }) =>
+      keywords.some((keyword) => lowerContent.includes(keyword))
+    );
 
-      // Extract the text from the model response
-      let botReply = '';
-      if (Array.isArray(data) && data[0]?.generated_text) {
-        // For text-generation models returning an array
-        botReply = data[0].generated_text;
-      } else if (data.generated_text) {
-        // For text2text-generation models returning an object
-        botReply = data.generated_text;
-      } else {
-        // Fallback: raw JSON or error
-        botReply = JSON.stringify(data);
-      }
+    const botReply = matched
+      ? matched.reply
+      : `I'm here to help with change management questions. Try asking about ADKAR, resistance, Kotter's model, or digital transformation.`;
 
-      // Create an assistant message
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: botReply,
-      };
+    const assistantMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      role: 'assistant',
+      content: botReply,
+    };
 
-      // Update chat with the bot's response
-      setChatState((prev) => ({
-        ...prev,
-        messages: [...prev.messages, assistantMessage],
-        isLoading: false,
-      }));
-    } catch (error) {
-      console.error('Error:', error);
-      // If an error occurs, stop loading but don't add a bot message
-      setChatState((prev) => ({
-        ...prev,
-        isLoading: false,
-      }));
-    }
+    setChatState((prev) => ({
+      ...prev,
+      messages: [...prev.messages, assistantMessage],
+      isLoading: false,
+    }));
   };
 
   return (
